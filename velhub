@@ -1,181 +1,102 @@
--- [[ VELHUB - MINIMALIST EDITION ]] --
-
+-- [[ VELHUB X AUTO FISH V13 - INTEGRATED ]] --
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local player = game.Players.LocalPlayer
+local RepStorage = game:GetService("ReplicatedStorage")
+local FishingSystem = RepStorage:WaitForChild("FishingSystem")
+
 local VelHubGui = Instance.new("ScreenGui")
-local MainFrame = Instance.new("CanvasGroup") 
-local ToggleIcon = Instance.new("TextButton")
-
-VelHubGui.Name = "VelHub"
+VelHubGui.Name = "VelHub_Integrated"
 VelHubGui.Parent = game.CoreGui
-VelHubGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
---- [[ 1. TOGGLE ICON (🌌) ]] ---
-ToggleIcon.Name = "ToggleIcon"
-ToggleIcon.Parent = VelHubGui
-ToggleIcon.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-ToggleIcon.Position = UDim2.new(0, 20, 0.5, -25)
-ToggleIcon.Size = UDim2.new(0, 55, 0, 55)
-ToggleIcon.Text = "🌌"
-ToggleIcon.TextSize = 35
-ToggleIcon.Visible = false
-ToggleIcon.ZIndex = 10
-Instance.new("UICorner", ToggleIcon).CornerRadius = UDim.new(1, 0)
-Instance.new("UIStroke", ToggleIcon).Thickness = 2
+--- [[ LOGIKA CORE FISHING (ENGINE V13) ]] ---
+local isFishing = false
+local currentRod = "Basic Rod"
+local cachedZone = "stater"
 
---- [[ 2. MAIN FRAME ]] ---
-MainFrame.Name = "MainFrame"
-MainFrame.Parent = VelHubGui
-MainFrame.BackgroundColor3 = Color3.fromRGB(242, 247, 255)
-MainFrame.Position = UDim2.new(0.5, -260, 1.5, 0) 
-MainFrame.Size = UDim2.new(0, 520, 0, 340)
-MainFrame.Active = true
-MainFrame.Draggable = true
-
-Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 24)
-local MainStroke = Instance.new("UIStroke", MainFrame)
-MainStroke.Thickness = 1.5
-MainStroke.Color = Color3.fromRGB(200, 210, 230)
-
---- [[ 3. SIDEBAR & LOGO NAME ]] ---
-local Sidebar = Instance.new("Frame", MainFrame)
-Sidebar.Size = UDim2.new(0, 150, 1, 0)
-Sidebar.BackgroundTransparency = 1
-
-local ProfileImg = Instance.new("ImageLabel", Sidebar)
-ProfileImg.Size = UDim2.new(0, 55, 0, 55)
-ProfileImg.Position = UDim2.new(0, 20, 0, 25)
-ProfileImg.Image = game.Players:GetUserThumbnailAsync(player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100)
-Instance.new("UICorner", ProfileImg).CornerRadius = UDim.new(1, 0)
-
--- TEXT LOGO (Cukup nama VelHub saja)
-local LogoName = Instance.new("TextLabel", Sidebar)
-LogoName.Size = UDim2.new(1, 0, 0, 20)
-LogoName.Position = UDim2.new(0, 0, 0, 85)
-LogoName.Text = "VelHub"
-LogoName.Font = Enum.Font.GothamBold
-LogoName.TextSize = 16
-LogoName.TextColor3 = Color3.fromRGB(30, 45, 70)
-LogoName.BackgroundTransparency = 1
-
-local function createMenu(pos, text, icon)
-    local btn = Instance.new("TextButton", Sidebar)
-    btn.Size = UDim2.new(1, -30, 0, 38)
-    btn.Position = UDim2.new(0, 15, 0, pos)
-    btn.Text = "  " .. icon .. "   " .. text
-    btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 11
-    btn.TextColor3 = Color3.fromRGB(120, 135, 155)
-    btn.TextXAlignment = Enum.TextXAlignment.Left
-    btn.BackgroundTransparency = 1
-    return btn
-end
-
-local TabInfoBtn = createMenu(120, "INFO", "📄")
-local TabFishBtn = createMenu(165, "FISHING", "🎣")
-local TabSetBtn = createMenu(210, "SETTINGS", "⚙️")
-
---- [[ 4. TOP CONTROLS ]] ---
-local ControlFrame = Instance.new("Frame", MainFrame)
-ControlFrame.Size = UDim2.new(0, 80, 0, 40)
-ControlFrame.Position = UDim2.new(1, -90, 0, 15)
-ControlFrame.BackgroundTransparency = 1
-
-local CloseBtn = Instance.new("TextButton", ControlFrame)
-CloseBtn.Size = UDim2.new(0, 35, 0, 35)
-CloseBtn.Position = UDim2.new(0, 40, 0, 0)
-CloseBtn.Text = "X"
-CloseBtn.Font = Enum.Font.GothamBold
-CloseBtn.TextSize = 18
-CloseBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
-CloseBtn.BackgroundTransparency = 1
-
-local MinBtn = Instance.new("TextButton", ControlFrame)
-MinBtn.Size = UDim2.new(0, 35, 0, 35)
-MinBtn.Position = UDim2.new(0, 0, 0, 0)
-MinBtn.Text = "🖥️"
-MinBtn.TextSize = 18
-MinBtn.BackgroundTransparency = 1
-
---- [[ 5. CONTENT AREA ]] ---
-local Content = Instance.new("Frame", MainFrame)
-Content.Position = UDim2.new(0, 160, 0, 60)
-Content.Size = UDim2.new(1, -185, 1, -85)
-Content.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-Instance.new("UICorner", Content).CornerRadius = UDim.new(0, 18)
-
-local Title = Instance.new("TextLabel", MainFrame)
-Title.Position = UDim2.new(0, 170, 0, 25)
-Title.Text = "Dashboard / Info"
-Title.Font = Enum.Font.GothamBold
-Title.TextSize = 20
-Title.TextColor3 = Color3.fromRGB(30, 45, 70)
-Title.BackgroundTransparency = 1
-Title.TextXAlignment = Enum.TextXAlignment.Left
-
--- INFO PAGE
-local InfoPage = Instance.new("ScrollingFrame", Content)
-InfoPage.Size = UDim2.new(1, -20, 1, -20)
-InfoPage.Position = UDim2.new(0, 10, 0, 10)
-InfoPage.BackgroundTransparency = 1
-InfoPage.ScrollBarThickness = 0
-local UIList = Instance.new("UIListLayout", InfoPage); UIList.Padding = UDim.new(0, 10)
-
-local function createCard(title, desc, color)
-    local card = Instance.new("Frame", InfoPage)
-    card.Size = UDim2.new(1, 0, 0, 70)
-    card.BackgroundColor3 = color
-    card.BackgroundTransparency = 0.9
-    Instance.new("UICorner", card).CornerRadius = UDim.new(0, 12)
-    local stroke = Instance.new("UIStroke", card); stroke.Color = color; stroke.Thickness = 1; stroke.Transparency = 0.5
-    
-    local t = Instance.new("TextLabel", card)
-    t.Size = UDim2.new(1, -20, 0, 25); t.Position = UDim2.new(0, 12, 0, 8)
-    t.Text = title; t.Font = Enum.Font.GothamBold; t.TextColor3 = color; t.TextSize = 13; t.BackgroundTransparency = 1; t.TextXAlignment = 0
-
-    local d = Instance.new("TextLabel", card)
-    d.Size = UDim2.new(1, -20, 0, 30); d.Position = UDim2.new(0, 12, 0, 32)
-    d.Text = desc; d.Font = Enum.Font.Gotham; d.TextColor3 = Color3.fromRGB(80, 90, 110); d.TextSize = 11; d.BackgroundTransparency = 1; d.TextXAlignment = 0; d.TextWrapped = true
-end
-
-createCard("TAMPILAN", "Hanya menampilkan nama VelHub agar lebih bersih.", Color3.fromRGB(0, 120, 255))
-createCard("TRANSPARANSI", "Atur kepekatan di tab Settings.", Color3.fromRGB(0, 200, 100))
-
--- SETTINGS PAGE
-local SetPage = Instance.new("Frame", Content); SetPage.Size = UDim2.new(1, 0, 1, 0); SetPage.BackgroundTransparency = 1; SetPage.Visible = false
-local SliderBase = Instance.new("Frame", SetPage); SliderBase.Size = UDim2.new(0.8, 0, 0, 6); SliderBase.Position = UDim2.new(0.1, 0, 0, 80); SliderBase.BackgroundColor3 = Color3.fromRGB(220, 230, 240); Instance.new("UICorner", SliderBase)
-local SliderBtn = Instance.new("TextButton", SliderBase); SliderBtn.Size = UDim2.new(0, 20, 0, 20); SliderBtn.Position = UDim2.new(0, 0, 0.5, -10); SliderBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 255); SliderBtn.Text = ""; Instance.new("UICorner", SliderBtn).CornerRadius = UDim.new(1, 0)
-
-local FishPage = Instance.new("Frame", Content); FishPage.Size = UDim2.new(1, 0, 1, 0); FishPage.BackgroundTransparency = 1; FishPage.Visible = false
-
---- [[ 6. LOGIKA SLIDER & NAVIGASI ]] ---
-local dragging = false
-SliderBtn.MouseButton1Down:Connect(function() dragging = true end)
-UserInputService.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end end)
-UserInputService.InputChanged:Connect(function(input)
-    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement) then
-        local pos = math.clamp((input.Position.X - SliderBase.AbsolutePosition.X) / SliderBase.AbsoluteSize.X, 0, 1)
-        SliderBtn.Position = UDim2.new(pos, -10, 0.5, -10)
-        MainFrame.GroupTransparency = pos
+-- Deteksi Rod & Zone Otomatis (Logika V13 kamu)
+task.spawn(function()
+    while true do
+        pcall(function()
+            local data = FishingSystem.InventoryEvents.Inventory_GetData:InvokeServer()
+            if data then
+                if data.EquippedRod then currentRod = data.EquippedRod end
+                if data.CurrentZone then cachedZone = data.CurrentZone end
+            end
+        end)
+        task.wait(3) 
     end
 end)
 
-local function switchTab(name)
-    InfoPage.Visible = (name == "Info"); FishPage.Visible = (name == "Fishing"); SetPage.Visible = (name == "Settings")
-    Title.Text = "Dashboard / " .. name
+--- [[ UI DESIGN (VELHUB STYLE) ]] ---
+local MainFrame = Instance.new("CanvasGroup", VelHubGui)
+MainFrame.Size = UDim2.new(0, 520, 0, 340)
+MainFrame.Position = UDim2.new(0.5, -260, 0.5, -170)
+MainFrame.BackgroundColor3 = Color3.fromRGB(242, 247, 255)
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 24)
+MainFrame.Draggable = true
+MainFrame.Active = true
+
+-- Tombol Close (X)
+local CloseBtn = Instance.new("TextButton", MainFrame)
+CloseBtn.Size = UDim2.new(0, 30, 0, 30); CloseBtn.Position = UDim2.new(1, -40, 0, 15)
+CloseBtn.Text = "X"; CloseBtn.TextColor3 = Color3.fromRGB(255, 100, 100); CloseBtn.BackgroundTransparency = 1; CloseBtn.Font = 2
+
+-- Sidebar
+local Sidebar = Instance.new("Frame", MainFrame)
+Sidebar.Size = UDim2.new(0, 150, 1, 0); Sidebar.BackgroundTransparency = 1
+
+local LogoLabel = Instance.new("TextLabel", Sidebar)
+LogoLabel.Size = UDim2.new(1, 0, 0, 50); LogoLabel.Position = UDim2.new(0, 0, 0, 20)
+LogoLabel.Text = "VelHub"; LogoLabel.Font = Enum.Font.GothamBold; LogoLabel.TextSize = 20; LogoLabel.BackgroundTransparency = 1
+
+-- Content Area
+local Content = Instance.new("Frame", MainFrame)
+Content.Position = UDim2.new(0, 160, 0, 60); Content.Size = UDim2.new(1, -185, 1, -85)
+Content.BackgroundColor3 = Color3.fromRGB(255, 255, 255); Instance.new("UICorner", Content).CornerRadius = UDim.new(0, 18)
+
+--- [[ TAB FISHING ]] ---
+local StatusLabel = Instance.new("TextLabel", Content)
+StatusLabel.Size = UDim2.new(1, 0, 0, 30); StatusLabel.Position = UDim2.new(0, 0, 0, 20)
+StatusLabel.Text = "Status: IDLE"; StatusLabel.Font = 2; StatusLabel.BackgroundTransparency = 1
+
+local ActivateBtn = Instance.new("TextButton", Content)
+ActivateBtn.Size = UDim2.new(0.8, 0, 0, 45); ActivateBtn.Position = UDim2.new(0.1, 0, 0, 60)
+ActivateBtn.Text = "ACTIVATE AUTO FISH"; ActivateBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+ActivateBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+Instance.new("UICorner", ActivateBtn)
+
+-- Logika Utama Memancing (Turbo V13)
+local function universalLoop()
+    while isFishing do
+        pcall(function()
+            local char = player.Character
+            local root = char and char:FindFirstChild("HumanoidRootPart")
+            if not root then return end
+            local targetPos = root.Position + (root.CFrame.LookVector * 20)
+            local hookPos = targetPos - Vector3.new(0, 10, 0)
+
+            FishingSystem.CastReplication:FireServer(targetPos, Vector3.new(0, 10, 0), currentRod, 100)
+            task.wait(0.05) 
+            FishingSystem.StartFishing:FireServer(hookPos)
+            task.wait(0.01) 
+            FishingSystem.RequestFishRoll:InvokeServer(hookPos)
+            FishingSystem.FishGiver:FireServer({{hookPosition = hookPos, zone = cachedZone or "stater"}})
+            FishingSystem.CleanupCast:FireServer()
+        end)
+        task.wait(0.01)
+    end
 end
 
-TabInfoBtn.MouseButton1Click:Connect(function() switchTab("Info") end)
-TabFishBtn.MouseButton1Click:Connect(function() switchTab("Fishing") end)
-TabSetBtn.MouseButton1Click:Connect(function() switchTab("Settings") end)
-CloseBtn.MouseButton1Click:Connect(function() VelHubGui:Destroy() end)
-MinBtn.MouseButton1Click:Connect(function()
-    MainFrame:TweenPosition(UDim2.new(0.5, -260, 1.5, 0), "In", "Quart", 0.5, true, function() MainFrame.Visible = false; ToggleIcon.Visible = true end)
-end)
-ToggleIcon.MouseButton1Click:Connect(function()
-    MainFrame.Visible = true; ToggleIcon.Visible = false; MainFrame:TweenPosition(UDim2.new(0.5, -260, 0.5, -170), "Out", "Back", 0.6, true)
+ActivateBtn.MouseButton1Click:Connect(function()
+    isFishing = not isFishing
+    if isFishing then
+        ActivateBtn.Text = "STOP FISHING"; ActivateBtn.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+        StatusLabel.Text = "Status: FISHING..."; task.spawn(universalLoop)
+    else
+        ActivateBtn.Text = "ACTIVATE AUTO FISH"; ActivateBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+        StatusLabel.Text = "Status: IDLE"
+    end
 end)
 
-task.wait(0.5)
-MainFrame:TweenPosition(UDim2.new(0.5, -260, 0.5, -170), "Out", "Back", 0.6, true)
+CloseBtn.MouseButton1Click:Connect(function() VelHubGui:Destroy() end)
