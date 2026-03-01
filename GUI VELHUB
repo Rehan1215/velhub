@@ -1,0 +1,257 @@
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+
+local player = Players.LocalPlayer
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "AbsoluteGodUI"
+ScreenGui.Parent = game:GetService("CoreGui")
+
+-- MAIN WINDOW
+local Main = Instance.new("Frame", ScreenGui)
+Main.Size = UDim2.new(0, 900, 0, 600)
+Main.Position = UDim2.new(0.5, -450, 0.5, -300)
+Main.BackgroundColor3 = Color3.fromRGB(15,18,28)
+Main.BackgroundTransparency = 1
+Main.Active = true
+Main.Draggable = true
+Instance.new("UICorner", Main).CornerRadius = UDim.new(0,24)
+
+-- RGB OUTLINE
+local Stroke = Instance.new("UIStroke", Main)
+Stroke.Thickness = 2.5
+
+local hue = 0
+RunService.RenderStepped:Connect(function()
+	hue = (hue + 0.0015) % 1
+	Stroke.Color = Color3.fromHSV(hue,0.8,1)
+end)
+
+-- OPEN ANIMATION
+TweenService:Create(Main, TweenInfo.new(0.6, Enum.EasingStyle.Quart), {
+	BackgroundTransparency = 0
+}):Play()
+
+-- TOP BAR
+local TopBar = Instance.new("Frame", Main)
+TopBar.Size = UDim2.new(1,0,0,70)
+TopBar.BackgroundColor3 = Color3.fromRGB(20,24,36)
+Instance.new("UICorner", TopBar).CornerRadius = UDim.new(0,24)
+
+local Title = Instance.new("TextLabel", TopBar)
+Title.Size = UDim2.new(1,-200,1,0)
+Title.Position = UDim2.new(0,30,0,0)
+Title.BackgroundTransparency = 1
+Title.Text = "ULTIMATE DEV CONTROL SYSTEM"
+Title.Font = Enum.Font.GothamBlack
+Title.TextSize = 22
+Title.TextColor3 = Color3.fromRGB(255,255,255)
+Title.TextXAlignment = Enum.TextXAlignment.Left
+
+-- STATUS BAR
+local Status = Instance.new("TextLabel", TopBar)
+Status.Size = UDim2.new(0,200,1,0)
+Status.Position = UDim2.new(1,-220,0,0)
+Status.BackgroundTransparency = 1
+Status.Text = "User: "..player.Name
+Status.Font = Enum.Font.Gotham
+Status.TextSize = 14
+Status.TextColor3 = Color3.fromRGB(200,200,255)
+
+-- SIDEBAR
+local Sidebar = Instance.new("Frame", Main)
+Sidebar.Position = UDim2.new(0,0,0,70)
+Sidebar.Size = UDim2.new(0,220,1,-70)
+Sidebar.BackgroundColor3 = Color3.fromRGB(18,20,32)
+Instance.new("UICorner", Sidebar).CornerRadius = UDim.new(0,24)
+
+local TabHolder = Instance.new("Frame", Sidebar)
+TabHolder.Size = UDim2.new(1,0,1,0)
+TabHolder.BackgroundTransparency = 1
+
+local TabLayout = Instance.new("UIListLayout", TabHolder)
+TabLayout.Padding = UDim.new(0,12)
+
+-- CONTENT AREA
+local Content = Instance.new("Frame", Main)
+Content.Position = UDim2.new(0,240,0,90)
+Content.Size = UDim2.new(1,-260,1,-130)
+Content.BackgroundTransparency = 1
+
+local Tabs = {}
+
+local function CreateTab(name)
+	local Btn = Instance.new("TextButton", TabHolder)
+	Btn.Size = UDim2.new(1,-20,0,50)
+	Btn.Text = name
+	Btn.BackgroundColor3 = Color3.fromRGB(30,35,55)
+	Btn.TextColor3 = Color3.new(1,1,1)
+	Btn.Font = Enum.Font.GothamBold
+	Btn.TextSize = 14
+	Instance.new("UICorner", Btn).CornerRadius = UDim.new(0,14)
+	
+	local Page = Instance.new("ScrollingFrame", Content)
+	Page.Size = UDim2.new(1,0,1,0)
+	Page.CanvasSize = UDim2.new(0,0,0,0)
+	Page.ScrollBarThickness = 6
+	Page.Visible = false
+	Page.BackgroundTransparency = 1
+	
+	local Layout = Instance.new("UIListLayout", Page)
+	Layout.Padding = UDim.new(0,20)
+	
+	Layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+		Page.CanvasSize = UDim2.new(0,0,0,Layout.AbsoluteContentSize.Y + 20)
+	end)
+	
+	Tabs[Btn] = Page
+	
+	Btn.MouseButton1Click:Connect(function()
+		for b,p in pairs(Tabs) do
+			p.Visible = false
+			TweenService:Create(b,TweenInfo.new(0.2),{
+				BackgroundColor3 = Color3.fromRGB(30,35,55)
+			}):Play()
+		end
+		
+		Page.Visible = true
+		Page.BackgroundTransparency = 1
+		TweenService:Create(Page,TweenInfo.new(0.3),{
+			BackgroundTransparency = 0
+		}):Play()
+		
+		TweenService:Create(Btn,TweenInfo.new(0.2),{
+			BackgroundColor3 = Color3.fromRGB(70,90,170)
+		}):Play()
+	end)
+	
+	return Page
+end
+
+-- CREATE MULTIPLE TABS
+local General = CreateTab("General Settings")
+local Advanced = CreateTab("Advanced Control")
+local Visual = CreateTab("Visual Effects")
+local Extra = CreateTab("Extra Tools")
+
+-- AUTO OPEN FIRST
+for b,p in pairs(Tabs) do
+	p.Visible = true
+	TweenService:Create(b,TweenInfo.new(0.2),{
+		BackgroundColor3 = Color3.fromRGB(70,90,170)
+	}):Play()
+	break
+end
+
+-- CARD SYSTEM
+local function CreateCard(parent,title,height)
+	local Card = Instance.new("Frame",parent)
+	Card.Size = UDim2.new(1,-20,0,height or 140)
+	Card.BackgroundColor3 = Color3.fromRGB(28,32,50)
+	Instance.new("UICorner",Card).CornerRadius = UDim.new(0,18)
+	
+	local Stroke = Instance.new("UIStroke",Card)
+	Stroke.Color = Color3.fromRGB(80,100,200)
+	
+	local Label = Instance.new("TextLabel",Card)
+	Label.Position = UDim2.new(0,20,0,15)
+	Label.Size = UDim2.new(1,-40,0,25)
+	Label.BackgroundTransparency = 1
+	Label.Text = title
+	Label.Font = Enum.Font.GothamBold
+	Label.TextSize = 16
+	Label.TextColor3 = Color3.fromRGB(220,230,255)
+	Label.TextXAlignment = Enum.TextXAlignment.Left
+	
+	return Card
+end
+
+-- TOGGLE SWITCH
+local function CreateToggle(parent)
+	local Toggle = Instance.new("Frame",parent)
+	Toggle.Position = UDim2.new(0,20,0,60)
+	Toggle.Size = UDim2.new(0,70,0,32)
+	Toggle.BackgroundColor3 = Color3.fromRGB(60,60,60)
+	Instance.new("UICorner",Toggle).CornerRadius = UDim.new(1,0)
+	
+	local Circle = Instance.new("Frame",Toggle)
+	Circle.Size = UDim2.new(0,26,0,26)
+	Circle.Position = UDim2.new(0,3,0.5,-13)
+	Circle.BackgroundColor3 = Color3.fromRGB(220,220,220)
+	Instance.new("UICorner",Circle).CornerRadius = UDim.new(1,0)
+	
+	local state=false
+	
+	Toggle.InputBegan:Connect(function(input)
+		if input.UserInputType==Enum.UserInputType.MouseButton1 then
+			state=not state
+			
+			if state then
+				TweenService:Create(Circle,TweenInfo.new(0.25),{
+					Position=UDim2.new(1,-29,0.5,-13)
+				}):Play()
+				TweenService:Create(Toggle,TweenInfo.new(0.25),{
+					BackgroundColor3=Color3.fromRGB(0,180,140)
+				}):Play()
+			else
+				TweenService:Create(Circle,TweenInfo.new(0.25),{
+					Position=UDim2.new(0,3,0.5,-13)
+				}):Play()
+				TweenService:Create(Toggle,TweenInfo.new(0.25),{
+					BackgroundColor3=Color3.fromRGB(60,60,60)
+				}):Play()
+			end
+		end
+	end)
+end
+
+-- ADD MANY CARDS FOR LENGTH
+for i=1,5 do
+	local card = CreateCard(General,"General Module "..i,140)
+	CreateToggle(card)
+end
+
+for i=1,5 do
+	local card = CreateCard(Advanced,"Advanced Module "..i,140)
+	CreateToggle(card)
+end
+
+for i=1,5 do
+	local card = CreateCard(Visual,"Visual Module "..i,140)
+	CreateToggle(card)
+end
+
+for i=1,5 do
+	local card = CreateCard(Extra,"Extra Module "..i,140)
+	CreateToggle(card)
+end
+
+-- FOOTER
+local Footer = Instance.new("TextLabel",Main)
+Footer.Size = UDim2.new(1,0,0,30)
+Footer.Position = UDim2.new(0,0,1,-30)
+Footer.BackgroundTransparency = 1
+Footer.Text = "Ultimate Interface Framework | Premium Edition"
+Footer.Font = Enum.Font.Gotham
+Footer.TextSize = 13
+Footer.TextColor3 = Color3.fromRGB(150,160,220)
+
+-- CLOSE
+local Close = Instance.new("TextButton",TopBar)
+Close.Size = UDim2.new(0,40,0,40)
+Close.Position = UDim2.new(1,-50,0.5,-20)
+Close.Text="X"
+Close.Font=Enum.Font.GothamBold
+Close.TextSize=18
+Close.TextColor3=Color3.new(1,1,1)
+Close.BackgroundColor3=Color3.fromRGB(180,60,60)
+Instance.new("UICorner",Close).CornerRadius=UDim.new(1,0)
+
+Close.MouseButton1Click:Connect(function()
+	TweenService:Create(Main,TweenInfo.new(0.3),{
+		BackgroundTransparency=1
+	}):Play()
+	task.wait(0.3)
+	ScreenGui:Destroy()
+end)
